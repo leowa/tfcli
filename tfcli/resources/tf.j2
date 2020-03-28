@@ -1,0 +1,19 @@
+terraform {
+  required_version = ">= 0.12, < 0.13"
+}
+
+provider "aws" {
+  region = "{{ aws_region | default('cn-north-1') }}"
+  # Allow any 2.x version of the AWS provider
+  version = "~> 2.0"
+}
+
+{% for _type, _name, attrs in instances %}
+resource "{{ _type }}" "{{ _name }}" {
+    {%- if attrs is not string %}
+    {%- for attr in attrs %}
+{{ attr | hcl_body }}
+    {%- endfor %}
+    {%- endif %}
+}
+{% endfor %}
