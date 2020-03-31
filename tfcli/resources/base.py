@@ -7,7 +7,7 @@ from os import path
 from abc import ABCMeta, abstractmethod
 
 from ..util import run_cmd
-from ..filters import do_hcl_body, Attribute
+from ..filters import do_hcl_body, Attribute, not_empty
 
 
 class BaseResource(metaclass=ABCMeta):
@@ -33,6 +33,11 @@ class BaseResource(metaclass=ABCMeta):
     def ignore_attrbute(cls, key, value):
         """whether ignoring this attribute from tfstate file
         """
+
+    @classmethod
+    def amend_attributes(cls, attributes: dict):
+        """ make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one"""
+        return attributes
 
     @classmethod
     @abstractmethod
@@ -115,11 +120,11 @@ class BaseResource(metaclass=ABCMeta):
             if rc != 0:
                 failed.append(' '.join(cmd))
         if failed:
-            self.logger.error("=" * 20 + __name__ +
-                              " LOAD FAILURE" + "=" * 20)
+            self.logger.error("=" * 20 + __name__
+                              + " LOAD FAILURE" + "=" * 20)
             self.logger.error("\n".join(['', *failed]))
-            self.logger.error("=" * 20 + __name__ +
-                              " LOAD FAILURE" + "=" * 20)
+            self.logger.error("=" * 20 + __name__
+                              + " LOAD FAILURE" + "=" * 20)
 
     def sync_tfstate(self, root, tf_file="main.tf", state_file="terraform.tfstate"):
         """sync resource configuration from a state_file,
@@ -143,7 +148,7 @@ class BaseResource(metaclass=ABCMeta):
         items = []
         for item in resources:
             _name, _type, inst = item['name'], item['type'], item['instances'][0]
-            raw = inst['attributes']
+            raw = self.amend_attributes(inst['attributes'])
             attrs = []
             for k in sorted(raw.keys()):
                 # skip ignored attributes
@@ -151,7 +156,7 @@ class BaseResource(metaclass=ABCMeta):
                 # and also skip attributes that means empty
                 # such as access_logs in alb with "enabled" as "false"
                 v = raw[k]
-                if self.ignore_attrbute(k, v) or not v:
+                if self.ignore_attrbute(k, v) or not not_empty(v):
                     continue
                 attrs.append(Attribute(name=k, value=v))
             items.append((_type, _name, attrs))
@@ -162,3 +167,12 @@ class BaseResource(metaclass=ABCMeta):
             fd.write(data)
         run_cmd(["terraform", "fmt", path.basename(tf_file)],
                 logger=self.logger, cwd=root)
+
+    def show_plan_diff(self, root):
+        """ show plan diff and return with Exit code as defined in terraform plan
+            0 - Succeeded, diff is empty (no changes)
+            1 - Errored
+            2 - Succeeded, there is a diff
+        """
+        return run_cmd(["terraform", "plan", "-detailed-exitcode"], logger=self.logger,
+                       cwd=root, show_stdout=True)

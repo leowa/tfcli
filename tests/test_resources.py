@@ -2,8 +2,8 @@ import pytest
 import tempfile
 import shutil
 
-from tfcli.resources.s3 import S3
-from tfcli.resources.elb import Elb
+from tfcli.resources import BaseResource
+from tfcli.resources import S3, Elb, Igw, Asg
 
 
 @pytest.fixture
@@ -11,33 +11,31 @@ def test_root():
     tmpd = tempfile.mkdtemp("test")
     print("temp dir is {}".format(tmpd))
     yield tmpd
-    shutil.rmtree(tmpd)
+    # shutil.rmtree(tmpd)
 
 
-def test_resources_s3():
-    s3 = S3()
-    print(list(s3.list_all()))
+def _test_load_and_validate(res: BaseResource, root, should_no_diff=True):
+    print(list(res.list_all()))
+    res.create_tfconfig(root)
+    res.load_tfstate(root)
+    res.sync_tfstate(root)
+    assert res.show_plan_diff(root) in (0) if should_no_diff else (0, 1)
 
 
 def test_load_tfstate_s3(test_root):
-    res = S3(indexes=list(range(2)))
-    res.create_tfconfig(test_root)
-    res.load_tfstate(test_root)
-    # repeat import, should just skip very quickly
-    res.load_tfstate(test_root)
-    # # if override is true, then it should load agian
-    # res.load_tfstate(test_root, override=True)
-    res.sync_tfstate(test_root)
-
-
-def test_resources_elb():
-    elb = Elb()
-    print(list(elb.list_all()))
+    # TODO: need to execute plan for s3 to apply additional default values
+    _test_load_and_validate(S3(indexes=list(range(10))),
+                            root=test_root, should_no_diff=False)
 
 
 def test_load_tfstate_elb(test_root):
-    test_root = "/var/folders/2v/jmznxpkx54q_hc7r27nx2q0c0000gp/T/tmp6g2w6_qntest"
-    res = Elb()
-    res.create_tfconfig(test_root)
-    res.load_tfstate(test_root)
-    res.sync_tfstate(test_root)
+    _test_load_and_validate(Elb(), test_root)
+
+
+def test_load_tfstate_igw(test_root):
+    _test_load_and_validate(Igw(), test_root)
+
+
+def test_load_tfstate_asg(test_root):
+    # TODO: apply change to for more default values
+    _test_load_and_validate(Asg(), root=test_root, should_no_diff=False)

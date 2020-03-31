@@ -17,11 +17,13 @@ def is_json(text: str):
         return False
 
 
+def not_empty(v):
+    if isinstance(v, list):
+        return len(v) != 0
+    return v not in (None, '')
+
+
 def do_hcl_body(attr, tab=1):
-    def not_empty(v):
-        if isinstance(v, list):
-            return len(v) != 0
-        return v not in (None, '')
 
     def process_dict(key, value, tab, pure_dict=False):
         """ pure_dict means value is a pure dict like tags, not those inside a list

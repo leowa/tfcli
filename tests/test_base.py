@@ -9,6 +9,14 @@ def test_do_hcl_body_bool_attribute_value():
     }"""
 
 
+def test_do_hcl_body_zero_attribute_value():
+    a = Attribute("limit", [dict(min=0, max=1)])
+    assert do_hcl_body(a) == """    limit {
+        min = 0
+        max = 1
+    }"""
+
+
 def test_do_hcl_body_list_of_dict():
     a = Attribute("cycle", [dict(at=10, repeat=5), dict(at=1, repeat=1000)])
     assert do_hcl_body(a) == """    cycle {
