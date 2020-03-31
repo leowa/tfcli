@@ -1,16 +1,13 @@
 import boto3
 import logging
 import json
-from json import JSONDecodeError
 import jinja2
 from uuid import uuid4
 from os import path
 from abc import ABCMeta, abstractmethod
-from collections import namedtuple
 
 from ..util import run_cmd
-
-Attribute = namedtuple('Attribute', 'name value')
+from ..filters import do_hcl_body, Attribute
 
 
 class BaseResource(metaclass=ABCMeta):
@@ -33,8 +30,8 @@ class BaseResource(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def ignored_attrbutes(cls):
-        """ignored attributes from tfstate file
+    def ignore_attrbute(cls, key, value):
+        """whether ignoring this attribute from tfstate file
         """
 
     @classmethod
@@ -118,11 +115,11 @@ class BaseResource(metaclass=ABCMeta):
             if rc != 0:
                 failed.append(' '.join(cmd))
         if failed:
-            self.logger.error("=" * 20 + __name__
-                              + " LOAD FAILURE" + "=" * 20)
+            self.logger.error("=" * 20 + __name__ +
+                              " LOAD FAILURE" + "=" * 20)
             self.logger.error("\n".join(['', *failed]))
-            self.logger.error("=" * 20 + __name__
-                              + " LOAD FAILURE" + "=" * 20)
+            self.logger.error("=" * 20 + __name__ +
+                              " LOAD FAILURE" + "=" * 20)
 
     def sync_tfstate(self, root, tf_file="main.tf", state_file="terraform.tfstate"):
         """sync resource configuration from a state_file,
@@ -149,10 +146,12 @@ class BaseResource(metaclass=ABCMeta):
             raw = inst['attributes']
             attrs = []
             for k in sorted(raw.keys()):
-                # skip ignorede attributes
+                # skip ignored attributes
                 # ignore some Empty attributes
+                # and also skip attributes that means empty
+                # such as access_logs in alb with "enabled" as "false"
                 v = raw[k]
-                if k in self.ignored_attrbutes() or not v:
+                if self.ignore_attrbute(k, v) or not v:
                     continue
                 attrs.append(Attribute(name=k, value=v))
             items.append((_type, _name, attrs))
@@ -161,50 +160,5 @@ class BaseResource(metaclass=ABCMeta):
         with open(tf_file, 'wt') as fd:
             fd.truncate()
             fd.write(data)
-        run_cmd(["terraform", "fmt", path.basename(tf_file)], logger=self.logger, cwd=root)
-
-
-def is_json(text: str):
-    if not isinstance(text, str):
-        return False
-    try:
-        json.loads(text)
-        return True
-    except JSONDecodeError:
-        return False
-
-
-def do_hcl_body(attr, tab=1):
-    def not_empty(v):
-        if isinstance(v, list):
-            return len(v) != 0
-        return v not in (None, '')
-    key, value = attr.name, attr.value
-    tabs = ' ' * 4 * tab
-    if isinstance(value, bool):
-        return "{}{} = {}".format(tabs, key, "true" if value else "false")
-    elif isinstance(value, list):
-        if len(value) == 0:
-            return ""
-        if isinstance(value[0], dict):
-            return "\n".join(["{}{} {{\n".format(tabs, key) +
-                              '\n'.join([do_hcl_body(Attribute(k, v), tab + 1)
-                                           for k, v in _.items() if not_empty(v)]) +
-                              "\n{}}}".format(tabs) for _ in value])
-        else:  # plain list value
-            return "{}{} = [{}]".format(tabs, key, ", ".join(['"{}"'.format(_) for _ in value]))
-    elif is_json(value):
-        return "{}{} = <<{}\n".format(tabs, key, key.upper()) + \
-            json.dumps(json.loads(value), indent=2) + "\n{}".format(key.upper())
-    elif isinstance(value, dict):
-        if not value:
-            return ""
-        return "{}{} {{\n".format(tabs, key) + \
-            '\n'.join([do_hcl_body(Attribute(k, v), tab + 1)
-                       for k, v in value.items() if not_empty(v)]) + "\n{}}}".format(tabs)
-    elif isinstance(value, str):
-        return '{}{} = "{}"'.format(tabs, key, value) if value else ""
-    else:  # other primitive types
-        # this assert is very useful for us to catch something else
-        assert isinstance(value, (int, float))
-        return '{}{} = {}'.format(tabs, key, value)
+        run_cmd(["terraform", "fmt", path.basename(tf_file)],
+                logger=self.logger, cwd=root)

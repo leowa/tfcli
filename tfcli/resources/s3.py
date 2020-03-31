@@ -10,8 +10,8 @@ class S3(BaseResource):
         self.indexes = indexes   # limit resource indexes to return, primarily for speeding testing
 
     @classmethod
-    def ignored_attrbutes(cls):
-        return ["arn", "id", "bucket_regional_domain_name", "bucket_domain_name"]
+    def ignore_attrbute(cls, key, value):
+        return key in ["arn", "id", "bucket_regional_domain_name", "bucket_domain_name"]
 
     @classmethod
     def included_resource_types(cls):
