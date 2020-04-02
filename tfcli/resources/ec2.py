@@ -56,15 +56,19 @@ class Ec2(BaseResource):
         items = ec2.describe_instances()["Reservations"]
         asgs = defaultdict(list)
         for i, one in enumerate([_ for sub in items for _ in sub["Instances"]]):
-            _id = one["InstanceId"]
-            name = self.get_resource_name_from_tags(one["Tags"])
+            aid = one["InstanceId"]
+            name_tag = self.get_resource_name_from_tags(one["Tags"])
+            if name_tag:
+                full_name = "{}-{}".format(normalize_identity(name_tag), aid)
+            else:
+                full_name = aid
             # NOTE: skip those managed by autoscaling
             asg = self.get_value_from_tags(one["Tags"], "aws:autoscaling:groupName")
             if asg:
-                asgs[asg].append(_id)
+                asgs[asg].append(aid)
                 continue
             if not self.indexes or i in self.indexes:
-                yield self.included_resource_types()[0], normalize_identity(name), _id
+                yield self.included_resource_types()[0], full_name, aid
 
         if len(asgs):
             self.logger.info(

@@ -201,10 +201,10 @@ def sync(ctx: click.Context, types, output):
     )
     for r in flattened:
         res, _type = r(logger=logger), r.__name__.lower()
-        root = path.join(output, _type)
+        root = path.abspath(path.join(output, _type))
         if not path.exists(root):
             shutil.os.makedirs(root)
-        logger.info("+" * 25 + _type + "+" * 25)
+        logger.info("+" * 25 + "  " + _type.upper() + "  " + "+" * 25)
         res.create_tfconfig(root)
         res.load_tfstate(root)
         res.sync_tfstate(root)

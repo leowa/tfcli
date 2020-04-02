@@ -110,7 +110,7 @@ class BaseResource(metaclass=ABCMeta):
                 serial=1,
                 lineage=str(uuid4()),
                 output=dict(),
-                resouces=list(),
+                resources=list(),
             )
             with open(state_file, "wt") as fd:
                 fd.truncate()

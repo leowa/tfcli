@@ -31,7 +31,7 @@ def test_root():
     tmpd = tempfile.mkdtemp("test")
     print("temp dir is {}".format(tmpd))
     yield tmpd
-    # shutil.rmtree(tmpd)
+    shutil.rmtree(tmpd)
 
 
 def _test_load_and_validate(res: BaseResource, root, should_no_diff=True):
