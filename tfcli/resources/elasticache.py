@@ -10,9 +10,12 @@ class Ecc(BaseResource):
 
     @classmethod
     def ignore_attrbute(cls, key, value):
-        if key in ["id", "owner_id", "arn"] + \
-                ["replication_group_id", "cache_nodes",
-                 "cluster_address", "configuration_endpoint"]:
+        if key in ["id", "owner_id", "arn"] + [
+            "replication_group_id",
+            "cache_nodes",
+            "cluster_address",
+            "configuration_endpoint",
+        ]:
             return True
         return False
 

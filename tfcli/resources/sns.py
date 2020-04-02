@@ -43,7 +43,7 @@ class Sns(BaseResource):
         items = sns.list_topics()["Topics"]
         for i, one in enumerate(items):
             arn = one["TopicArn"]
-            name = arn.split(':')[-1]
+            name = arn.split(":")[-1]
             if not self.indexes or i in self.indexes:
                 yield self.included_resource_types()[0], name, arn
 
@@ -52,7 +52,10 @@ class Sns(BaseResource):
         items = sns.list_subscriptions()["Subscriptions"]
         for i, one in enumerate(items):
             arn = one["SubscriptionArn"]
-            name = arn.split(':')[-1]
-            if not self.indexes or i in self.indexes \
-                    and one["Protocol"] not in ["email", "email-json"]:
+            name = arn.split(":")[-1]
+            if (
+                not self.indexes
+                or i in self.indexes
+                and one["Protocol"] not in ["email", "email-json"]
+            ):
                 yield self.included_resource_types()[1], name, arn

@@ -29,9 +29,13 @@ class Ec2(BaseResource):
 
     @classmethod
     def ignore_attrbute(cls, key, value):
-        if key in ["id", "owner_id", "arn", "unique_id"] + \
-                ["primary_network_interface_id", "private_dns",
-                 "instance_state", "public_ip", "public_dns"]:
+        if key in ["id", "owner_id", "arn", "unique_id"] + [
+            "primary_network_interface_id",
+            "private_dns",
+            "instance_state",
+            "public_ip",
+            "public_dns",
+        ]:
             return True
         return False
 
@@ -55,8 +59,7 @@ class Ec2(BaseResource):
             _id = one["InstanceId"]
             name = self.get_resource_name_from_tags(one["Tags"])
             # NOTE: skip those managed by autoscaling
-            asg = self.get_value_from_tags(
-                one["Tags"], "aws:autoscaling:groupName")
+            asg = self.get_value_from_tags(one["Tags"], "aws:autoscaling:groupName")
             if asg:
                 asgs[asg].append(_id)
                 continue
@@ -64,6 +67,8 @@ class Ec2(BaseResource):
                 yield self.included_resource_types()[0], normalize_identity(name), _id
 
         if len(asgs):
-            self.logger.info("skip instances managed by autoscaling groups.\n{}".format(
-                "\n".join(["{}: {}".format(k, len(v)) for k, v in asgs.items()])
-            ))
+            self.logger.info(
+                "skip instances managed by autoscaling groups.\n{}".format(
+                    "\n".join(["{}: {}".format(k, len(v)) for k, v in asgs.items()])
+                )
+            )

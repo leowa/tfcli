@@ -31,6 +31,6 @@ class Sqs(BaseResource):
         sqs = self.session.client("sqs")
         items = sqs.list_queues()["QueueUrls"]
         for i, one in enumerate(items):
-            name = one.split('/')[-1]
+            name = one.split("/")[-1]
             if not self.indexes or i in self.indexes:
                 yield self.included_resource_types()[0], name, one

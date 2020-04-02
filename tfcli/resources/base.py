@@ -22,16 +22,14 @@ class BaseResource(metaclass=ABCMeta):
         if not logger:
             logger = logging.getLogger(__name__)
             message_format = "[%(asctime)s.%(msecs).03d pid#%(process)d# %(levelname).1s] %(message)s"
-            logging.basicConfig(
-                level=logging.INFO, format=message_format)
+            logging.basicConfig(level=logging.INFO, format=message_format)
         self.logger = logger
         self.session = boto3.Session()
 
     @classmethod
     def my_jinja_env(cls):
-        env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(path.dirname(__file__)))
-        env.filters['hcl_body'] = do_hcl_body
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(path.dirname(__file__)))
+        env.filters["hcl_body"] = do_hcl_body
         return env
 
     @classmethod
@@ -73,8 +71,7 @@ class BaseResource(metaclass=ABCMeta):
         if not path.isabs(config_file):
             config_file = path.join(root, config_file)
         tf_template = self.my_jinja_env().get_template("tf.j2")
-        data = tf_template.render(
-            instances=[(t, n, _) for t, n, _ in self.list_all()])
+        data = tf_template.render(instances=[(t, n, _) for t, n, _ in self.list_all()])
         with open(config_file, "wt") as fd:
             fd.truncate()
             fd.write(data)
@@ -94,22 +91,28 @@ class BaseResource(metaclass=ABCMeta):
         # get list of all existing resource state with <resource_type>.<resource_name> as key
         existing = set()
         if path.exists(state_file):
-            with open(state_file, 'rt') as fd:
+            with open(state_file, "rt") as fd:
                 jdata = json.load(fd)
             kept = []
-            for res in jdata['resources']:
-                if not override or res['type'] not in self.included_resource_types():
+            for res in jdata["resources"]:
+                if not override or res["type"] not in self.included_resource_types():
                     existing.add("{}.{}".format(res["type"], res["name"]))
                     kept.append(res)
             if override:
-                jdata['resources'] = kept
-                with open(state_file, 'wt') as fd:
+                jdata["resources"] = kept
+                with open(state_file, "wt") as fd:
                     fd.truncate()
                     json.dump(jdata, fd, indent=2)
         else:  # create an empty `container`
-            meta = dict(version=4, terraform_version="0.12.24", serial=1,
-                        lineage=str(uuid4()), output=dict(), resouces=list())
-            with open(state_file, 'wt') as fd:
+            meta = dict(
+                version=4,
+                terraform_version="0.12.24",
+                serial=1,
+                lineage=str(uuid4()),
+                output=dict(),
+                resouces=list(),
+            )
+            with open(state_file, "wt") as fd:
                 fd.truncate()
                 json.dump(meta, fd, indent=2)
 
@@ -126,18 +129,21 @@ class BaseResource(metaclass=ABCMeta):
             if not override and "{0}.{1}".format(_type, name) in existing:
                 continue
             _id = _id or name  # use name as Id if not provided
-            cmd = ["terraform", "import", "-config={}".format(root),
-                   "-state-out={}".format(state_file),
-                   "{0}.{1}".format(_type, name), _id]
+            cmd = [
+                "terraform",
+                "import",
+                "-config={}".format(root),
+                "-state-out={}".format(state_file),
+                "{0}.{1}".format(_type, name),
+                _id,
+            ]
             rc = run_cmd(cmd, self.logger, root)
             if rc != 0:
-                failed.append(' '.join(cmd))
+                failed.append(" ".join(cmd))
         if failed:
-            self.logger.error("=" * 20 + __name__
-                              + " LOAD FAILURE" + "=" * 20)
-            self.logger.error("\n".join(['', *failed]))
-            self.logger.error("=" * 20 + __name__
-                              + " LOAD FAILURE" + "=" * 20)
+            self.logger.error("=" * 20 + __name__ + " LOAD FAILURE" + "=" * 20)
+            self.logger.error("\n".join(["", *failed]))
+            self.logger.error("=" * 20 + __name__ + " LOAD FAILURE" + "=" * 20)
 
     def sync_tfstate(self, root, tf_file="main.tf", state_file="terraform.tfstate"):
         """sync resource configuration from a state_file,
@@ -154,9 +160,9 @@ class BaseResource(metaclass=ABCMeta):
         if not path.isabs(tf_file):
             tf_file = path.join(root, tf_file)
 
-        with open(state_file, 'rt') as fd:
+        with open(state_file, "rt") as fd:
             data = json.load(fd)
-            resources = data['resources']
+            resources = data["resources"]
 
         # all resources that need to update
         pending = OrderedDict()
@@ -167,8 +173,8 @@ class BaseResource(metaclass=ABCMeta):
         for item in resources:
             # assert that "instances" list will always have one item
             assert len(item["instances"]) == 1
-            _name, _type = item['name'], item['type']
-            pending[(_type, _name)] = item['instances'][0]["attributes"]
+            _name, _type = item["name"], item["type"]
+            pending[(_type, _name)] = item["instances"][0]["attributes"]
 
         instances = []
         for t, n, in pending:
@@ -186,11 +192,12 @@ class BaseResource(metaclass=ABCMeta):
 
         tf_template = self.my_jinja_env().get_template("tf.j2")
         data = tf_template.render(instances=instances)
-        with open(tf_file, 'wt') as fd:
+        with open(tf_file, "wt") as fd:
             fd.truncate()
             fd.write(data)
-        run_cmd(["terraform", "fmt", path.basename(tf_file)],
-                logger=self.logger, cwd=root)
+        run_cmd(
+            ["terraform", "fmt", path.basename(tf_file)], logger=self.logger, cwd=root
+        )
 
     def show_plan_diff(self, root):
         """ show plan diff and return with Exit code as defined in terraform plan
@@ -198,8 +205,12 @@ class BaseResource(metaclass=ABCMeta):
             1 - Errored
             2 - Succeeded, there is a diff
         """
-        return run_cmd(["terraform", "plan", "-detailed-exitcode"], logger=self.logger,
-                       cwd=root, show_stdout=True)
+        return run_cmd(
+            ["terraform", "plan", "-detailed-exitcode"],
+            logger=self.logger,
+            cwd=root,
+            show_stdout=True,
+        )
 
     def get_resource_name_from_tags(self, tags: list):
         for tag in tags:

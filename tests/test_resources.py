@@ -3,8 +3,27 @@ import tempfile
 
 import pytest
 
-from tfcli.resources import (S3, Asg, BaseResource, Cwa, Ecc, Eip, Elb,
-                             Iamg, Igw, Vpc, Nif, Nacl, Rt, Sg, Subnet, Sns, Rds, Sqs, Ec2)
+from tfcli.resources import (
+    S3,
+    Asg,
+    BaseResource,
+    Cwa,
+    Ecc,
+    Eip,
+    Elb,
+    Iamg,
+    Igw,
+    Vpc,
+    Nif,
+    Nacl,
+    Rt,
+    Sg,
+    Subnet,
+    Sns,
+    Rds,
+    Sqs,
+    Ec2,
+)
 
 
 @pytest.fixture
@@ -25,8 +44,9 @@ def _test_load_and_validate(res: BaseResource, root, should_no_diff=True):
 
 def test_load_tfstate_s3(test_root):
     # TODO: need to execute plan for s3 to apply additional default values
-    _test_load_and_validate(S3(indexes=list(range(10))),
-                            root=test_root, should_no_diff=False)
+    _test_load_and_validate(
+        S3(indexes=list(range(10))), root=test_root, should_no_diff=False
+    )
 
 
 def test_load_tfstate_elb(test_root):

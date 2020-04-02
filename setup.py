@@ -21,7 +21,7 @@ setup(
     long_description=readme,
     classifiers=[
         "Intended Audience :: Developers",
-        'License :: OSI Approved :: MIT License',
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3.5",
@@ -33,7 +33,7 @@ setup(
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords='python terraform',  # Optional
+    keywords="python terraform",  # Optional
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
     #
@@ -43,18 +43,15 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages=find_packages(exclude=['examples', 'docs', 'tests']),  # Required
-
+    packages=find_packages(exclude=["examples", "docs", "tests"]),  # Required
     # Specify which Python versions you support. In contrast to the
     # 'Programming Language' classifiers above, 'pip install' will check this
     # and refuse to install the project if the version does not match. If you
     # do not support Python 2, you can simplify this to '>=3.5' or similar, see
     # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
     python_requires=">=3.5",
-
     # if you want to use src as your package diretory
     # package_dir={"": "src"},
-
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
     # installed, so they must be valid existing projects.
@@ -69,16 +66,10 @@ setup(
         "pre-commit~=2.2.0",
         "boto3~=1.14.0",
     ],
-
     # Similar to `install_requires` above, these must be valid existing projects.
     extras_require={
         "dotenv": ["python-dotenv"],
-        "dev": [
-            "pytest",
-            "pyenv",
-            "coverage",
-            "tox",
-        ],
+        "dev": ["pytest", "pyenv", "coverage", "tox",],
         "test": ["coverage"],
     },
     # If there are data files included in your packages that need to be
@@ -86,7 +77,6 @@ setup(
     # package_data={  # Optional
     #     'sample': ['package_data.dat'],
     # },
-
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # `pip` to create the appropriate form of executable for the target
@@ -94,9 +84,5 @@ setup(
     #
     # For example, the following would provide a command called `pytfcli` which
     # executes the function `main` from this package when invoked:
-    entry_points={  # Optional
-        'console_scripts': [
-            'tfcli=tfcli.cli:cli',
-        ],
-    },
+    entry_points={"console_scripts": ["tfcli=tfcli.cli:cli",],},  # Optional
 )

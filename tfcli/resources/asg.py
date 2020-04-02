@@ -4,6 +4,7 @@ from .base import BaseResource
 class Asg(BaseResource):
     """ autoscaling group resource to generate from current region
     """
+
     def __init__(self, logger=None):
         super().__init__(logger)
 

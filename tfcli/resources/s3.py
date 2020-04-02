@@ -7,7 +7,9 @@ class S3(BaseResource):
 
     def __init__(self, logger=None, indexes=None):
         super().__init__(logger)
-        self.indexes = indexes   # limit resource indexes to return, primarily for speeding testing
+        self.indexes = (
+            indexes  # limit resource indexes to return, primarily for speeding testing
+        )
 
     @classmethod
     def ignore_attrbute(cls, key, value):
@@ -25,7 +27,8 @@ class S3(BaseResource):
             "aws_s3_bucket_object",
             "aws_s3_bucket_notification",
             "aws_s3_bucket_metric",
-            "aws_s3_bucket_inventory"]
+            "aws_s3_bucket_inventory",
+        ]
 
     def list_all(self):
         """list all such kind of resources from AWS

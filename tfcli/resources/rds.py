@@ -11,8 +11,13 @@ class Rds(BaseResource):
 
     @classmethod
     def ignore_attrbute(cls, key, value):
-        if key in ["id", "owner_id", "arn", "unique_id"] + \
-                ["hosted_zone_id", "resource_id", "address", "endpoint", "status"]:
+        if key in ["id", "owner_id", "arn", "unique_id"] + [
+            "hosted_zone_id",
+            "resource_id",
+            "address",
+            "endpoint",
+            "status",
+        ]:
             return True
         return False
 
@@ -20,11 +25,7 @@ class Rds(BaseResource):
     def included_resource_types(cls):
         """resource types for this resource and its derived resources
         """
-        return [
-            "aws_db_instance",
-            "aws_db_subnet_group",
-            "aws_db_parameter_group"
-        ]
+        return ["aws_db_instance", "aws_db_subnet_group", "aws_db_parameter_group"]
 
     def list_all(self):
         """list all such kind of resources from AWS

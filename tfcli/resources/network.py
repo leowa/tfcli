@@ -11,10 +11,13 @@ class Vpc(BaseResource):
 
     @classmethod
     def ignore_attrbute(cls, key, value):
-        if key in ["id", "owner_id", "arn"] + \
-                ["default_network_acl_id", "default_route_table_id",
-                 "default_security_group_id", "main_route_table_id",
-                 "dhcp_options_id"]:
+        if key in ["id", "owner_id", "arn"] + [
+            "default_network_acl_id",
+            "default_route_table_id",
+            "default_security_group_id",
+            "main_route_table_id",
+            "dhcp_options_id",
+        ]:
             return True
         return False
 
@@ -56,9 +59,7 @@ class Igw(BaseResource):
     def included_resource_types(cls):
         """resource types for this resource and its derived resources
         """
-        return [
-            "aws_internet_gateway"
-        ]
+        return ["aws_internet_gateway"]
 
     def list_all(self):
         """list all such kind of resources from AWS
@@ -120,14 +121,20 @@ class Eip(BaseResource):
 
     def __init__(self, logger=None, indexes=None):
         super().__init__(logger)
-        self.indexes = indexes   # limit resource indexes to return, primarily for speeding testing
+        self.indexes = (
+            indexes  # limit resource indexes to return, primarily for speeding testing
+        )
 
     @classmethod
     def ignore_attrbute(cls, key, value):
-        if key in ["id", "owner_id", "arn"] + \
-                ["domain", "public_dns",
-                 "private_dns", "association_id",
-                 "public_ip", "private_ip"]:
+        if key in ["id", "owner_id", "arn"] + [
+            "domain",
+            "public_dns",
+            "private_dns",
+            "association_id",
+            "public_ip",
+            "private_ip",
+        ]:
             return True
         return False
 
@@ -162,8 +169,10 @@ class Nif(BaseResource):
 
     @classmethod
     def ignore_attrbute(cls, key, value):
-        if key in ["id", "owner_id", "arn", "unique_id"] + \
-                ["mac_address", "private_dns_name"]:
+        if key in ["id", "owner_id", "arn", "unique_id"] + [
+            "mac_address",
+            "private_dns_name",
+        ]:
             return True
         return False
 
@@ -197,7 +206,9 @@ class Nif(BaseResource):
         for i, one in enumerate(items):
             _id = one["NetworkInterfaceId"]
             # HACK: skip those managed by amazon-rds, with Attachment.InstanceId
-            if (not self.indexes or i in self.indexes) and ("RequesterId" not in one or one["RequesterId"] != "amazon-rds"):
+            if (not self.indexes or i in self.indexes) and (
+                "RequesterId" not in one or one["RequesterId"] != "amazon-rds"
+            ):
                 yield self.included_resource_types()[0], _id, _id
 
 
@@ -276,7 +287,9 @@ class Rt(BaseResource):
                             continue
                         a_name = ass["RouteTableAssociationId"]
                         a_id = "{}/{}".format(
-                            ass["SubnetId"]if "SubnetId" in ass else ass["GatewayId"], _id)
+                            ass["SubnetId"] if "SubnetId" in ass else ass["GatewayId"],
+                            _id,
+                        )
                         yield self.included_resource_types()[1], a_name, a_id
 
 
@@ -294,8 +307,11 @@ class Sg(BaseResource):
         :param _type: resource type
         :param _name: resource name
         """
-        if _type == "aws_security_group_rule" and "self" in attributes \
-                and "source_security_group_id" in attributes:
+        if (
+            _type == "aws_security_group_rule"
+            and "self" in attributes
+            and "source_security_group_id" in attributes
+        ):
             del attributes["source_security_group_id"]
         return attributes
 
@@ -370,4 +386,6 @@ class Subnet(BaseResource):
             _id = one["SubnetId"]
             name = self.get_resource_name_from_tags(one["Tags"])
             if not self.indexes or i in self.indexes:
-                yield self.included_resource_types()[0], normalize_identity("{}-{}".format(_id, name)), _id
+                yield self.included_resource_types()[0], normalize_identity(
+                    "{}-{}".format(_id, name)
+                ), _id

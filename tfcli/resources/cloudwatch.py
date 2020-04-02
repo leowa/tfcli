@@ -21,9 +21,7 @@ class Cwa(BaseResource):
     def included_resource_types(cls):
         """resource types for this resource and its derived resources
         """
-        return [
-            "aws_cloudwatch_metric_alarm"
-        ]
+        return ["aws_cloudwatch_metric_alarm"]
 
     def list_all(self):
         """list all such kind of resources from AWS
