@@ -20,9 +20,11 @@ class BaseResource(metaclass=ABCMeta):
 
     def __init__(self, logger=None):
         if not logger:
-            self.logger = logging.getLogger(__name__)
+            logger = logging.getLogger(__name__)
+            message_format = "[%(asctime)s.%(msecs).03d pid#%(process)d# %(levelname).1s] %(message)s"
             logging.basicConfig(
-                level=logging.INFO, format="%(asctime)-15s %(clientip)s %(user)-8s %(message)s")
+                level=logging.INFO, format=message_format)
+        self.logger = logger
         self.session = boto3.Session()
 
     @classmethod

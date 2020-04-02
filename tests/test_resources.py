@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 
-from tfcli.resources import (S3, Asg, BaseResource, Cwa, Ecc, Ecsn, Eip, Elb,
+from tfcli.resources import (S3, Asg, BaseResource, Cwa, Ecc, Eip, Elb,
                              Iamg, Igw, Vpc, Nif, Nacl, Rt, Sg, Subnet, Sns, Rds, Sqs, Ec2)
 
 
@@ -52,10 +52,6 @@ def test_load_tfstate_eip(test_root):
 
 def test_load_tfstate_ecc(test_root):
     _test_load_and_validate(Ecc(), test_root)
-
-
-def test_load_tfstate_ecsn(test_root):
-    _test_load_and_validate(Ecsn(), test_root)
 
 
 def test_load_tfstate_iamg(test_root):

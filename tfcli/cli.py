@@ -9,6 +9,7 @@ import re
 import subprocess
 
 from . import format_logger
+from .resources import RESOURCE_TYPES
 
 logger = logging.getLogger("tfcli")
 
@@ -151,3 +152,28 @@ def migrate(ctx: click.Context, files):
                     tf, o.decode() + e.decode()))
         finally:
             shutil.rmtree(td)
+
+
+@cli.command()
+@click.pass_context
+@click.option("--types", "-t", required=True, multiple=True,
+              type=click.Choice(RESOURCE_TYPES.keys()), help="resource types to sync")
+@click.argument('output', default=".", type=click.Path(dir_okay=True))
+def sync(ctx: click.Context, types, output):
+    flattened = []
+    for t in types:
+        if isinstance(RESOURCE_TYPES[t], list):
+            flattened.extend(RESOURCE_TYPES[t])
+        else:
+            flattened.append(RESOURCE_TYPES[t])
+    click.echo("sync {} to {}".format(
+        ",".join([_.__name__ for _ in flattened]), output))
+    for r in flattened:
+        res, _type = r(logger=logger), r.__name__.lower()
+        root = path.join(output, _type)
+        if not path.exists(root):
+            shutil.os.makedirs(root)
+        logger.info("+" * 25 + _type + "+" * 25)
+        res.create_tfconfig(root)
+        res.load_tfstate(root)
+        res.sync_tfstate(root)
