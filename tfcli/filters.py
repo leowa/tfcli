@@ -1,26 +1,10 @@
-
 import json
+import re
 from json import JSONDecodeError
 from collections import namedtuple
 
 
 Attribute = namedtuple('Attribute', 'name value')
-
-
-def is_json(text: str):
-    if not isinstance(text, str):
-        return False
-    try:
-        json.loads(text)
-        return True
-    except JSONDecodeError:
-        return False
-
-
-def not_empty(v):
-    if isinstance(v, list):
-        return len(v) != 0
-    return v not in (None, '')
 
 
 def do_hcl_body(attr, tab=1):
@@ -48,7 +32,7 @@ def do_hcl_body(attr, tab=1):
         return "{}{} = {}".format(tabs, key, "true" if value else "false")
     elif isinstance(value, list):
         if len(value) == 0:
-            return ""
+            return "{}{} = []".format(tabs, key)
         if isinstance(value[0], dict):
             blocks = [process_dict(key, _, tab) for _ in value]
             blocks = [_ for _ in blocks if _]  # drop empty string
@@ -60,7 +44,8 @@ def do_hcl_body(attr, tab=1):
             return "{}{} = [{}]".format(tabs, key, ", ".join(['"{}"'.format(_) for _ in value]))
     elif is_json(value):
         return "{}{} = <<{}\n".format(tabs, key, key.upper()) + \
-            json.dumps(json.loads(value), indent=2) + "\n{}".format(key.upper())
+            json.dumps(json.loads(escape_interpolation(value)),
+                       indent=2) + "\n{}".format(key.upper())
     elif isinstance(value, dict):
         return process_dict(key, value, tab, pure_dict=True)
     elif isinstance(value, str):
@@ -69,3 +54,29 @@ def do_hcl_body(attr, tab=1):
         # this assert is very useful for us to catch something else
         assert isinstance(value, (int, float))
         return '{}{} = {}'.format(tabs, key, value)
+
+
+def normalize_identity(name: str):
+    return re.sub(r"[^\w]", "-", name)
+
+
+def escape_interpolation(text: str):
+    return re.sub(r"\$\{", "$${", text)
+
+
+def is_json(text: str):
+    if not isinstance(text, str):
+        return False
+    if "{" not in text:
+        return False
+    try:
+        json.loads(text)
+        return True
+    except JSONDecodeError:
+        return False
+
+
+def not_empty(v):
+    if isinstance(v, list):
+        return len(v) != 0
+    return v not in (None, '')

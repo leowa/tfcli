@@ -1,9 +1,10 @@
-import pytest
-import tempfile
 import shutil
+import tempfile
 
-from tfcli.resources import BaseResource
-from tfcli.resources import S3, Elb, Igw, Asg
+import pytest
+
+from tfcli.resources import (S3, Asg, BaseResource, Cwa, Ecc, Ecsn, Eip, Elb,
+                             Iamg, Igw, Vpc, Nif, Nacl, Rt, Sg, Subnet, Sns, Rds, Sqs, Ec2)
 
 
 @pytest.fixture
@@ -19,7 +20,7 @@ def _test_load_and_validate(res: BaseResource, root, should_no_diff=True):
     res.create_tfconfig(root)
     res.load_tfstate(root)
     res.sync_tfstate(root)
-    assert res.show_plan_diff(root) in (0) if should_no_diff else (0, 1)
+    assert res.show_plan_diff(root) in (0,) if should_no_diff else (0, 1)
 
 
 def test_load_tfstate_s3(test_root):
@@ -39,3 +40,64 @@ def test_load_tfstate_igw(test_root):
 def test_load_tfstate_asg(test_root):
     # TODO: apply change to for more default values
     _test_load_and_validate(Asg(), root=test_root, should_no_diff=False)
+
+
+def test_load_tfstate_vpc(test_root):
+    _test_load_and_validate(Vpc(), test_root)
+
+
+def test_load_tfstate_eip(test_root):
+    _test_load_and_validate(Eip(indexes=list(range(5))), test_root)
+
+
+def test_load_tfstate_ecc(test_root):
+    _test_load_and_validate(Ecc(), test_root)
+
+
+def test_load_tfstate_ecsn(test_root):
+    _test_load_and_validate(Ecsn(), test_root)
+
+
+def test_load_tfstate_iamg(test_root):
+    _test_load_and_validate(Iamg(), test_root)
+
+
+def test_load_tfstate_cwa(test_root):
+    # TODO: `+ treat_missing_data        = "missing"`
+    _test_load_and_validate(Cwa(), test_root, should_no_diff=False)
+
+
+def test_load_tfstate_nif(test_root):
+    _test_load_and_validate((Nif(indexes=list(range(1)))), test_root)
+
+
+def test_load_tfstate_nacl(test_root):
+    _test_load_and_validate((Nacl(indexes=list(range(1)))), test_root)
+
+
+def test_load_tfstate_rt(test_root):
+    _test_load_and_validate((Rt()), test_root)
+
+
+def test_load_tfstate_sg(test_root):
+    _test_load_and_validate((Sg(indexes=list(range(3)))), test_root)
+
+
+def test_load_tfstate_subnet(test_root):
+    _test_load_and_validate((Subnet(indexes=list(range(3)))), test_root)
+
+
+def test_load_tfstate_sns(test_root):
+    _test_load_and_validate((Sns(indexes=list(range(3)))), test_root)
+
+
+def test_load_tfstate_rds(test_root):
+    _test_load_and_validate((Rds(indexes=list(range(3)))), test_root)
+
+
+def test_load_tfstate_sqs(test_root):
+    _test_load_and_validate((Sqs(indexes=list(range(3)))), test_root)
+
+
+def test_load_tfstate_ec2(test_root):
+    _test_load_and_validate((Ec2(indexes=list(range(5)))), test_root)

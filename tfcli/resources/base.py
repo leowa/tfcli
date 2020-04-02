@@ -5,9 +5,13 @@ import jinja2
 from uuid import uuid4
 from os import path
 from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
 
 from ..util import run_cmd
-from ..filters import do_hcl_body, Attribute, not_empty
+from ..filters import do_hcl_body, Attribute, not_empty, normalize_identity
+
+
+NOT_IMPORTABLE_RESOURCES = ["aws_iam_group_membership"]
 
 
 class BaseResource(metaclass=ABCMeta):
@@ -34,9 +38,12 @@ class BaseResource(metaclass=ABCMeta):
         """whether ignoring this attribute from tfstate file
         """
 
-    @classmethod
-    def amend_attributes(cls, attributes: dict):
-        """ make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one"""
+    def amend_attributes(self, _type, _name, attributes: dict):
+        """ make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one
+
+        :param _type: resource type
+        :param _name: resource name
+        """
         return attributes
 
     @classmethod
@@ -64,7 +71,8 @@ class BaseResource(metaclass=ABCMeta):
         if not path.isabs(config_file):
             config_file = path.join(root, config_file)
         tf_template = self.my_jinja_env().get_template("tf.j2")
-        data = tf_template.render(instances=self.list_all())
+        data = tf_template.render(
+            instances=[(t, n, _) for t, n, _ in self.list_all()])
         with open(config_file, "wt") as fd:
             fd.truncate()
             fd.write(data)
@@ -109,6 +117,9 @@ class BaseResource(metaclass=ABCMeta):
                 rc = run_cmd(["terraform", "init"], self.logger, root)
                 if rc != 0:
                     exit(rc)
+            # some resource is not supported by `terraform import`
+            if _type in NOT_IMPORTABLE_RESOURCES:
+                continue
             # import is slow, avoid this if resource exists in state file and no need to override
             if not override and "{0}.{1}".format(_type, name) in existing:
                 continue
@@ -145,23 +156,34 @@ class BaseResource(metaclass=ABCMeta):
             data = json.load(fd)
             resources = data['resources']
 
-        items = []
+        # all resources that need to update
+        pending = OrderedDict()
+        for t, n, _ in self.list_all():
+            pending[(t, n)] = dict()
+
+        # fill in attributes from state
         for item in resources:
-            _name, _type, inst = item['name'], item['type'], item['instances'][0]
-            raw = self.amend_attributes(inst['attributes'])
-            attrs = []
+            # assert that "instances" list will always have one item
+            assert len(item["instances"]) == 1
+            _name, _type = item['name'], item['type']
+            pending[(_type, _name)] = item['instances'][0]["attributes"]
+
+        instances = []
+        for t, n, in pending:
+            raw = self.amend_attributes(t, n, pending[(t, n)])
+            inst_attrs = []
             for k in sorted(raw.keys()):
-                # skip ignored attributes
-                # ignore some Empty attributes
+                # skip ignored attributes: ignore some Empty attributes
                 # and also skip attributes that means empty
                 # such as access_logs in alb with "enabled" as "false"
                 v = raw[k]
                 if self.ignore_attrbute(k, v) or not not_empty(v):
                     continue
-                attrs.append(Attribute(name=k, value=v))
-            items.append((_type, _name, attrs))
+                inst_attrs.append(Attribute(name=k, value=v))
+            instances.append((t, n, inst_attrs))
+
         tf_template = self.my_jinja_env().get_template("tf.j2")
-        data = tf_template.render(instances=items)
+        data = tf_template.render(instances=instances)
         with open(tf_file, 'wt') as fd:
             fd.truncate()
             fd.write(data)
@@ -176,3 +198,17 @@ class BaseResource(metaclass=ABCMeta):
         """
         return run_cmd(["terraform", "plan", "-detailed-exitcode"], logger=self.logger,
                        cwd=root, show_stdout=True)
+
+    def get_resource_name_from_tags(self, tags: list):
+        for tag in tags:
+            if tag["Key"] == "Name":
+                return normalize_identity(tag["Value"])
+        return None
+
+    def get_value_from_tags(self, tags: list, name: str):
+        if not name:
+            return None
+        for tag in tags:
+            if tag["Key"] == name:
+                return tag["Value"]
+        return None

@@ -2,14 +2,12 @@ from .base import BaseResource
 
 
 class Asg(BaseResource):
-    """ igw (internet gateway) resource to generate from current region
+    """ autoscaling group resource to generate from current region
     """
-
-    def __init__(self, logger=None, indexes=None):
+    def __init__(self, logger=None):
         super().__init__(logger)
 
-    @classmethod
-    def amend_attributes(cls, attributes: dict):
+    def amend_attributes(self, _type, _name, attributes: dict):
         if "launch_template" in attributes and attributes["launch_template"]:
             tpl = attributes["launch_template"][0]
             if "id" in tpl and "name" in tpl:  # remove name from template if id exists
@@ -18,19 +16,9 @@ class Asg(BaseResource):
 
     @classmethod
     def ignore_attrbute(cls, key, value):
-        if key in ["id", "owner_id", "arn", ""]:
+        if key in ["id", "owner_id", "arn"]:
             return True
-
         return False
-
-    # @classmethod
-    # def add_default_attributes(cls, attributes):
-    #     breakpoint()
-    #     if "max_size" not in attributes:
-    #         attributes["max_size"] = attributes["min_size"]
-    #     if "min_size" not in attributes:
-    #         attributes["min_size"] = min(1, attributes["max_size"])
-    #     return attributes
 
     @classmethod
     def included_resource_types(cls):

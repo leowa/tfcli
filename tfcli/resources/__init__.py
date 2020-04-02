@@ -1,5 +1,31 @@
 from .base import BaseResource
 from .s3 import S3
-from .elb import Elb
-from .igw import Igw
+from .network import Elb, Igw, Vpc, Eip, Nif, Nacl, Rt, Sg, Subnet
 from .asg import Asg
+from .elasticache import Ecc, Ecsn
+from .iam import Iamg
+from .cloudwatch import Cwa
+from .sns import Sns
+from .rds import Rds
+from .sqs import Sqs
+from .ec2 import Ec2
+
+
+# TODO: Provide implementations for those resources
+# aws_vpn_gateway: Virtual Private Gateway
+# aws_kms_alias: Customer managed keys
+# aws_kms_key
+# aws_elb: TODO should migrate all existing to alb
+
+# IAM resources
+# aws_iam_group_membership
+# aws_iam_instance_profile
+# aws_iam_policy
+# aws_iam_policy_attachment
+# aws_iam_role
+# aws_iam_role_policy
+# aws_iam_user
+# aws_iam_user_policy
+
+
+# reference: https://github.com/dtan4/terraforming/tree/c1d467becef5645e14ff822860f3fc2a9868c066/lib/terraforming/resource

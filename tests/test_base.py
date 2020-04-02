@@ -1,4 +1,4 @@
-from tfcli.resources.base import do_hcl_body, Attribute
+from tfcli.filters import do_hcl_body, Attribute, normalize_identity
 
 
 def test_do_hcl_body_bool_attribute_value():
@@ -65,3 +65,25 @@ def test_do_hcl_body_dict_value_empty():
         "kubernetes.io/namespace": None
     })
     assert do_hcl_body(a) == ""
+
+
+def test_do_hcl_body_escape_interpolation_json():
+    # ref: https://www.terraform.io/docs/configuration-0-11/interpolation.html
+    # > You can escape interpolation with double dollar signs: $${foo} will be rendered as a literal ${foo}.
+    a = Attribute("tags", '{\"hello\": \"${world}\"}')
+    assert do_hcl_body(a) == """    tags = <<TAGS
+{
+  "hello": "$${world}"
+}
+TAGS"""
+
+
+def test_do_hcl_body_not_json():
+    a = Attribute("protocol", "-1")
+    assert do_hcl_body(a) == '    protocol = "-1"'
+
+
+def test_normalize_identity():
+    assert normalize_identity("AccessS3Bucket,.-ami") == "AccessS3Bucket---ami"
+    assert normalize_identity(
+        "X_AccessS3Bucket,.-ami") == "X_AccessS3Bucket---ami"
