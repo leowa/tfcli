@@ -2,7 +2,7 @@ from collections import OrderedDict
 from .base import BaseResource
 from .s3 import S3
 from .network import Elb, Igw, Vpc, Eip, Nif, Nacl, Rt, Sg, Subnet
-from .asg import Asg
+from .asg import Asg, LaunchTemplate
 from .elasticache import Ecc
 from .iam import Iamg
 from .cloudwatch import Cwa
@@ -22,7 +22,7 @@ RESOURCE_TYPES = OrderedDict(
         "rt": Rt,
         "sg": Sg,
         "subnet": Subnet,
-        "asg": Asg,
+        "asg": [Asg, LaunchTemplate],
         "ecc": Ecc,
         "ec2": Ec2,
         "rds": Rds,

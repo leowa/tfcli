@@ -64,7 +64,7 @@ setup(
         "click>=7.0",
         "colorama~=0.4.0",
         "pre-commit~=2.2.0",
-        "boto3~=1.14.0",
+        "boto3>=1.13.0",
     ],
     # Similar to `install_requires` above, these must be valid existing projects.
     extras_require={

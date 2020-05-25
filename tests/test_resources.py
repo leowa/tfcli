@@ -6,6 +6,7 @@ import pytest
 from tfcli.resources import (
     S3,
     Asg,
+    LaunchTemplate,
     BaseResource,
     Cwa,
     Ecc,
@@ -117,3 +118,7 @@ def test_load_tfstate_sqs(test_root):
 
 def test_load_tfstate_ec2(test_root):
     _test_load_and_validate((Ec2(indexes=list(range(5)))), test_root)
+
+
+def test_load_tfstate_lt(test_root):
+    _test_load_and_validate(LaunchTemplate(), test_root)
