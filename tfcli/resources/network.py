@@ -1,4 +1,4 @@
-from .base import BaseResource
+from .base import BaseResource, Attribute
 from ..filters import normalize_identity
 
 
@@ -338,9 +338,12 @@ class Sg(BaseResource):
         ec2 = self.session.client("ec2")
         items = ec2.describe_security_groups()["SecurityGroups"]
         for i, one in enumerate(items):
-            name, _id, = one["GroupName"], one["GroupId"]
+            name, _id, vpc_id = one["GroupName"], one["GroupId"], one["VpcId"]
             if not self.indexes or i in self.indexes:
-                yield self.included_resource_types()[0], name, _id
+                yield self.included_resource_types()[0], "{}_{}".format(vpc_id, name), [
+                    _id,
+                    Attribute("vpc_id", vpc_id),
+                ]
 
 
 class Subnet(BaseResource):

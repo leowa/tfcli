@@ -5,13 +5,16 @@ import jinja2
 from uuid import uuid4
 from os import path
 from abc import ABCMeta, abstractmethod
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 
 from ..util import run_cmd
 from ..filters import do_hcl_body, Attribute, not_empty, normalize_identity
 
 
 NOT_IMPORTABLE_RESOURCES = ["aws_iam_group_membership"]
+
+
+Attribute = namedtuple("Attribute", ["name", "value"])
 
 
 class BaseResource(metaclass=ABCMeta):
@@ -57,7 +60,7 @@ class BaseResource(metaclass=ABCMeta):
     def list_all(self):
         """list all such kind of resources from AWS
 
-        :return: list of tupe for a resource (type, name, id)
+        :return: list of tupe for a resource (type, name, [id, ...]) or (type, name, id)
         """
 
     def create_tfconfig(self, root, config_file="main.tf"):
@@ -71,7 +74,14 @@ class BaseResource(metaclass=ABCMeta):
         if not path.isabs(config_file):
             config_file = path.join(root, config_file)
         tf_template = self.my_jinja_env().get_template("tf.j2")
-        data = tf_template.render(instances=[(t, n, _) for t, n, _ in self.list_all()])
+        instances = []
+        for t, n, _id in self.list_all():
+            if isinstance(_id, list):
+                # ignore the first element which is the id
+                instances.append((t, n, _id[1:]))
+            else:
+                instances.append((t, n, _id))
+        data = tf_template.render(instances=instances)
         with open(config_file, "wt") as fd:
             fd.truncate()
             fd.write(data)
@@ -128,6 +138,8 @@ class BaseResource(metaclass=ABCMeta):
             # import is slow, avoid this if resource exists in state file and no need to override
             if not override and "{0}.{1}".format(_type, name) in existing:
                 continue
+            if isinstance(_id, list):
+                _id = _id[0]
             _id = _id or name  # use name as Id if not provided
             cmd = [
                 "terraform",
