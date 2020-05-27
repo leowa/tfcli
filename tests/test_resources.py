@@ -13,6 +13,7 @@ from tfcli.resources import (
     Eip,
     Elb,
     Iamg,
+    InstanceProfile,
     Igw,
     Vpc,
     Nif,
@@ -122,3 +123,7 @@ def test_load_tfstate_ec2(test_root):
 
 def test_load_tfstate_lt(test_root):
     _test_load_and_validate(LaunchTemplate(), test_root)
+
+
+def test_load_tfstate_instance_profile(test_root):
+    _test_load_and_validate(InstanceProfile(), test_root)

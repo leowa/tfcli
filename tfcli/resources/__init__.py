@@ -4,7 +4,7 @@ from .s3 import S3
 from .network import Elb, Igw, Vpc, Eip, Nif, Nacl, Rt, Sg, Subnet
 from .asg import Asg, LaunchTemplate
 from .elasticache import Ecc
-from .iam import Iamg
+from .iam import Iamg, InstanceProfile
 from .cloudwatch import Cwa
 from .sns import Sns
 from .rds import Rds
@@ -29,7 +29,7 @@ RESOURCE_TYPES = OrderedDict(
         "cwa": Cwa,
         "sns": Sns,
         "sqs": Sqs,
-        "iam": Iamg,
+        "iam": [Iamg, InstanceProfile],
         "s3": S3,
         "network": [Elb, Igw, Vpc, Eip, Nif, Nacl, Rt, Sg, Subnet],
         "instance": [Asg, Ecc, Rds, Ec2],

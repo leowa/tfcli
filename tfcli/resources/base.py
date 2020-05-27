@@ -75,12 +75,14 @@ class BaseResource(metaclass=ABCMeta):
             config_file = path.join(root, config_file)
         tf_template = self.my_jinja_env().get_template("tf.j2")
         instances = []
+        dedup = set()
         for t, n, _id in self.list_all():
             if isinstance(_id, list):
                 # ignore the first element which is the id
-                instances.append((t, n, _id[1:]))
-            else:
+                _id = _id[1:]
+            if (t, n) not in dedup:
                 instances.append((t, n, _id))
+                dedup.add((t, n))
         data = tf_template.render(instances=instances)
         with open(config_file, "wt") as fd:
             fd.truncate()
