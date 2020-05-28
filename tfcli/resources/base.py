@@ -5,16 +5,13 @@ import jinja2
 from uuid import uuid4
 from os import path
 from abc import ABCMeta, abstractmethod
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 
 from ..util import run_cmd
 from ..filters import do_hcl_body, Attribute, not_empty, normalize_identity
 
 
 NOT_IMPORTABLE_RESOURCES = ["aws_iam_group_membership"]
-
-
-Attribute = namedtuple("Attribute", ["name", "value"])
 
 
 class BaseResource(metaclass=ABCMeta):

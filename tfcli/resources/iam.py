@@ -95,6 +95,7 @@ class InstanceProfile(BaseResource):
         return [
             "aws_iam_instance_profile",
             "aws_iam_role",
+            "aws_iam_role_policy_attachment",
         ]
 
     def list_all(self):
@@ -108,4 +109,13 @@ class InstanceProfile(BaseResource):
             name = one["InstanceProfileName"]
             yield "aws_iam_instance_profile", name, name
             for role in one["Roles"]:
-                yield "aws_iam_role", role["RoleName"], role["RoleName"]
+                rn = role["RoleName"]
+                yield "aws_iam_role", rn, rn
+                attached = iam.list_attached_role_policies(RoleName=rn)
+                for a in attached.get("AttachedPolicies", []):
+                    pname, parn = a["PolicyName"], a["PolicyArn"]
+                    yield (
+                        "aws_iam_role_policy_attachment",
+                        "{}-{}".format(rn, pname),
+                        "{}/{}".format(rn, parn),
+                    )
