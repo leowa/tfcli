@@ -25,6 +25,7 @@ from tfcli.resources import (
     Rds,
     Sqs,
     Ec2,
+    Emr,
 )
 
 
@@ -127,3 +128,7 @@ def test_load_tfstate_lt(test_root):
 
 def test_load_tfstate_instance_profile(test_root):
     _test_load_and_validate(InstanceProfile(), test_root)
+
+
+def test_load_tfstate_emr(test_root):
+    _test_load_and_validate(Emr(), test_root)

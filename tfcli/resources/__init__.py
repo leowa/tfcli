@@ -10,6 +10,7 @@ from .sns import Sns
 from .rds import Rds
 from .sqs import Sqs
 from .ec2 import Ec2
+from .emr import Emr
 
 RESOURCE_TYPES = OrderedDict(
     {
@@ -31,6 +32,7 @@ RESOURCE_TYPES = OrderedDict(
         "sqs": Sqs,
         "iam": [Iamg, InstanceProfile],
         "s3": S3,
+        "emr": Emr,
         "network": [Elb, Igw, Vpc, Eip, Nif, Nacl, Rt, Sg, Subnet],
         "instance": [Asg, Ecc, Rds, Ec2],
     }
