@@ -3,8 +3,7 @@ from ..filters import normalize_identity
 
 
 class Vpc(BaseResource):
-    """ vpc resource to generate from current region
-    """
+    """vpc resource to generate from current region"""
 
     def __init__(self, logger=None):
         super().__init__(logger)
@@ -23,8 +22,7 @@ class Vpc(BaseResource):
 
     @classmethod
     def included_resource_types(cls):
-        """resource types for this resource and its derived resources
-        """
+        """resource types for this resource and its derived resources"""
         return [
             "aws_vpc",
         ]
@@ -43,8 +41,7 @@ class Vpc(BaseResource):
 
 
 class Igw(BaseResource):
-    """ igw (internet gateway) resource to generate from current region
-    """
+    """igw (internet gateway) resource to generate from current region"""
 
     def __init__(self, logger=None):
         super().__init__(logger)
@@ -57,8 +54,7 @@ class Igw(BaseResource):
 
     @classmethod
     def included_resource_types(cls):
-        """resource types for this resource and its derived resources
-        """
+        """resource types for this resource and its derived resources"""
         return ["aws_internet_gateway"]
 
     def list_all(self):
@@ -76,8 +72,7 @@ class Igw(BaseResource):
 
 
 class Elb(BaseResource):
-    """ elb resource to generate from current region
-    """
+    """elb resource to generate from current region"""
 
     def __init__(self, logger=None):
         super().__init__(logger)
@@ -92,8 +87,7 @@ class Elb(BaseResource):
 
     @classmethod
     def included_resource_types(cls):
-        """resource types for this resource and its derived resources
-        """
+        """resource types for this resource and its derived resources"""
         return [
             "aws_alb",
             "aws_alb_listener",
@@ -116,8 +110,7 @@ class Elb(BaseResource):
 
 
 class Eip(BaseResource):
-    """ eip resource to generate from current region
-    """
+    """eip resource to generate from current region"""
 
     def __init__(self, logger=None, indexes=None):
         super().__init__(logger)
@@ -140,8 +133,7 @@ class Eip(BaseResource):
 
     @classmethod
     def included_resource_types(cls):
-        """resource types for this resource and its derived resources
-        """
+        """resource types for this resource and its derived resources"""
         return [
             "aws_eip",
         ]
@@ -160,8 +152,7 @@ class Eip(BaseResource):
 
 
 class Nif(BaseResource):
-    """ aws_network_interface to generate from current region
-    """
+    """aws_network_interface to generate from current region"""
 
     def __init__(self, logger=None, indexes=None):
         super().__init__(logger)
@@ -177,7 +168,7 @@ class Nif(BaseResource):
         return False
 
     def amend_attributes(self, _type, _name, attributes: dict):
-        """ make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one
+        """make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one
 
         :param _type: resource type
         :param _name: resource name
@@ -190,8 +181,7 @@ class Nif(BaseResource):
 
     @classmethod
     def included_resource_types(cls):
-        """resource types for this resource and its derived resources
-        """
+        """resource types for this resource and its derived resources"""
         return [
             "aws_network_interface",
         ]
@@ -213,8 +203,7 @@ class Nif(BaseResource):
 
 
 class Nacl(BaseResource):
-    """ aws_network_interface to generate from current region
-    """
+    """aws_network_interface to generate from current region"""
 
     def __init__(self, logger=None, indexes=None):
         super().__init__(logger)
@@ -228,8 +217,7 @@ class Nacl(BaseResource):
 
     @classmethod
     def included_resource_types(cls):
-        """resource types for this resource and its derived resources
-        """
+        """resource types for this resource and its derived resources"""
         return [
             "aws_network_acl",
         ]
@@ -248,8 +236,7 @@ class Nacl(BaseResource):
 
 
 class Rt(BaseResource):
-    """ aws_route_table to generate from current region
-    """
+    """aws_route_table to generate from current region"""
 
     def __init__(self, logger=None, indexes=None):
         super().__init__(logger)
@@ -263,8 +250,7 @@ class Rt(BaseResource):
 
     @classmethod
     def included_resource_types(cls):
-        """resource types for this resource and its derived resources
-        """
+        """resource types for this resource and its derived resources"""
         return [
             "aws_route_table",
             "aws_route_table_association",
@@ -294,15 +280,14 @@ class Rt(BaseResource):
 
 
 class Sg(BaseResource):
-    """ aws_security_group to generate from current region
-    """
+    """aws_security_group to generate from current region"""
 
     def __init__(self, logger=None, indexes=None):
         super().__init__(logger)
         self.indexes = indexes
 
     def amend_attributes(self, _type, _name, attributes: dict):
-        """ make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one
+        """make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one
 
         :param _type: resource type
         :param _name: resource name
@@ -323,8 +308,7 @@ class Sg(BaseResource):
 
     @classmethod
     def included_resource_types(cls):
-        """resource types for this resource and its derived resources
-        """
+        """resource types for this resource and its derived resources"""
         return [
             "aws_security_group",
             "aws_security_group_rule",
@@ -339,6 +323,9 @@ class Sg(BaseResource):
         items = ec2.describe_security_groups()["SecurityGroups"]
         for i, one in enumerate(items):
             name, _id, vpc_id = one["GroupName"], one["GroupId"], one["VpcId"]
+            if " " in name:
+                self.logger.warn("ignore invalid group due to bad name:{}".format(name))
+                continue
             if not self.indexes or i in self.indexes:
                 yield self.included_resource_types()[0], "{}_{}".format(vpc_id, name), [
                     _id,
@@ -347,15 +334,14 @@ class Sg(BaseResource):
 
 
 class Subnet(BaseResource):
-    """ aws_subnet to generate from current region
-    """
+    """aws_subnet to generate from current region"""
 
     def __init__(self, logger=None, indexes=None):
         super().__init__(logger)
         self.indexes = indexes
 
     def amend_attributes(self, _type, _name, attributes: dict):
-        """ make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one
+        """make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one
 
         :param _type: resource type
         :param _name: resource name
@@ -372,8 +358,7 @@ class Subnet(BaseResource):
 
     @classmethod
     def included_resource_types(cls):
-        """resource types for this resource and its derived resources
-        """
+        """resource types for this resource and its derived resources"""
         return [
             "aws_subnet",
         ]
