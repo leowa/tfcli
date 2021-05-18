@@ -15,8 +15,7 @@ NOT_IMPORTABLE_RESOURCES = ["aws_iam_group_membership"]
 
 
 class BaseResource(metaclass=ABCMeta):
-    """ S3 resource to generate from current region
-    """
+    """S3 resource to generate from current region"""
 
     def __init__(self, logger=None):
         if not logger:
@@ -35,11 +34,10 @@ class BaseResource(metaclass=ABCMeta):
     @classmethod
     @abstractmethod
     def ignore_attrbute(cls, key, value):
-        """whether ignoring this attribute from tfstate file
-        """
+        """whether ignoring this attribute from tfstate file"""
 
     def amend_attributes(self, _type, _name, attributes: dict):
-        """ make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one
+        """make some needed change for attributes to some type of resource, such as adding default ones, or modify existing one
 
         :param _type: resource type
         :param _name: resource name
@@ -50,7 +48,7 @@ class BaseResource(metaclass=ABCMeta):
     @abstractmethod
     def included_resource_types(cls):
         """resource types for this resource and its derived resources
-           refer to: https://github.com/terraform-providers/terraform-provider-aws/blob/cb72b1f24c1344533c32f421263db84e39bdd824/aws/provider.go
+        refer to: https://github.com/terraform-providers/terraform-provider-aws/blob/cb72b1f24c1344533c32f421263db84e39bdd824/aws/provider.go
         """
 
     @abstractmethod
@@ -126,7 +124,12 @@ class BaseResource(metaclass=ABCMeta):
                 json.dump(meta, fd, indent=2)
 
         failed = []
+        dedup = set()
         for i, (_type, name, _id) in enumerate(self.list_all()):
+            if (_type, name) in dedup:
+                continue
+            dedup.add((_type, name))
+
             if i == 0:
                 rc = run_cmd(["terraform", "init"], self.logger, root)
                 if rc != 0:
@@ -188,7 +191,7 @@ class BaseResource(metaclass=ABCMeta):
             pending[(_type, _name)] = item["instances"][0]["attributes"]
 
         instances = []
-        for t, n, in pending:
+        for (t, n,) in pending:
             raw = self.amend_attributes(t, n, pending[(t, n)])
             inst_attrs = []
             for k in sorted(raw.keys()):
@@ -211,10 +214,10 @@ class BaseResource(metaclass=ABCMeta):
         )
 
     def show_plan_diff(self, root):
-        """ show plan diff and return with Exit code as defined in terraform plan
-            0 - Succeeded, diff is empty (no changes)
-            1 - Errored
-            2 - Succeeded, there is a diff
+        """show plan diff and return with Exit code as defined in terraform plan
+        0 - Succeeded, diff is empty (no changes)
+        1 - Errored
+        2 - Succeeded, there is a diff
         """
         return run_cmd(
             ["terraform", "plan", "-detailed-exitcode"],
