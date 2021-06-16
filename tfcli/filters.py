@@ -9,8 +9,7 @@ Attribute = namedtuple("Attribute", "name value")
 
 def do_hcl_body(attr, tab=1):
     def process_dict(key, value, tab, pure_dict=False):
-        """ pure_dict means value is a pure dict like tags, not those inside a list
-        """
+        """pure_dict means value is a pure dict like tags, not those inside a list"""
         if not value:  # empty dict
             return ""
         nested = [
@@ -67,6 +66,10 @@ def do_hcl_body(attr, tab=1):
 
 def normalize_identity(name: str):
     return re.sub(r"[^\w]", "-", name)
+
+
+def arn_lastpart(arn: str):
+    return arn.split("/")[-1]
 
 
 def escape_interpolation(text: str):

@@ -71,6 +71,7 @@ class BaseResource(metaclass=ABCMeta):
         tf_template = self.my_jinja_env().get_template("tf.j2")
         instances = []
         dedup = set()
+        self.logger.info(list(self.list_all()))
         for t, n, _id in self.list_all():
             if isinstance(_id, list):
                 # ignore the first element which is the id

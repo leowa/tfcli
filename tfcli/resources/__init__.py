@@ -1,7 +1,8 @@
 from collections import OrderedDict
 from .base import BaseResource
 from .s3 import S3
-from .network import Elb, Igw, Vpc, Eip, Nif, Nacl, Rt, Sg, Subnet
+from .network import Igw, Vpc, Eip, Nif, Nacl, Rt, Sg, Subnet
+from .elb import Elb
 from .asg import Asg, LaunchTemplate
 from .elasticache import Ecc
 from .iam import Group, Role
