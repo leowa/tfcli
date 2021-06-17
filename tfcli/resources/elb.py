@@ -63,7 +63,7 @@ class Elb(BaseResource):
                 ):
                     yield (
                         "aws_lb_listener_rule",
-                        "{}_{}".format(name, arn_lastpart(rarn)),
+                        "{}-{}-{}_{}".format(name, proto, port, arn_lastpart(rarn)),
                         rarn,
                     )
 
