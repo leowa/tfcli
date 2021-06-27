@@ -215,6 +215,7 @@ class Rt(BaseResource):
         """resource types for this resource and its derived resources"""
         return [
             "aws_route_table",
+            "aws_route",
             "aws_route_table_association",
         ]
 
@@ -228,17 +229,22 @@ class Rt(BaseResource):
         for i, one in enumerate(items):
             _id = one["RouteTableId"]
             if not self.indexes or i in self.indexes:
-                yield self.included_resource_types()[0], _id, _id
-                if "Associations" in one:
-                    for ass in one["Associations"]:
-                        if ass["Main"]:  # no need to add association for Main one
-                            continue
-                        a_name = ass["RouteTableAssociationId"]
-                        a_id = "{}/{}".format(
-                            ass["SubnetId"] if "SubnetId" in ass else ass["GatewayId"],
-                            _id,
-                        )
-                        yield self.included_resource_types()[1], a_name, a_id
+                yield "aws_route_table", _id, _id
+                for index, rt in enumerate(one.get("Routes", [])):
+                    destination = rt.get("DestinationCidrBlock", "") or rt.get(
+                        "DestinationPrefixListId"
+                    )
+                    yield "aws_route", "{}_{}".format(_id, index), "{}_{}".format(
+                        _id, destination
+                    )
+                for ass in one.get("Associations", []):
+                    if ass["Main"]:  # no need to add association for Main one
+                        continue
+                    a_name = ass["RouteTableAssociationId"]
+                    a_id = "{}/{}".format(
+                        ass["SubnetId"] if "SubnetId" in ass else ass["GatewayId"], _id,
+                    )
+                    yield "aws_route_table_association", a_name, a_id
 
 
 class Sg(BaseResource):
