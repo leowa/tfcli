@@ -6,6 +6,7 @@ provider "aws" {
   region = "{{ aws_region | default('cn-north-1') }}"
   # Allow any 2.x version of the AWS provider
   # version = ">= 2.23" # deprecated
+  profile = "{{ aws_profile| default('default') }}"
 }
 
 {% for _type, _name, attrs in instances %}

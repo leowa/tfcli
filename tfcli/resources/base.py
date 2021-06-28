@@ -4,6 +4,7 @@ import json
 import jinja2
 from uuid import uuid4
 from os import path
+from os import environ
 from abc import ABCMeta, abstractmethod
 from collections import OrderedDict
 
@@ -79,7 +80,11 @@ class BaseResource(metaclass=ABCMeta):
             if (t, n) not in dedup:
                 instances.append((t, n, _id))
                 dedup.add((t, n))
-        data = tf_template.render(instances=instances)
+        data = tf_template.render(
+            instances=instances,
+            aws_region=environ.get("AWS_REGION") or "cn-north1",
+            aws_profile=environ.get("AWS_PROFILE") or "default",
+        )
         with open(config_file, "wt") as fd:
             fd.truncate()
             fd.write(data)
